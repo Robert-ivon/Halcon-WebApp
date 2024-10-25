@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
@@ -45,4 +44,23 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    
+
+    // A user belongs to a role
+    public function role() {
+        return $this->belongsTo(Role::class);
+    }
+
+    // A user belongs to a department
+    public function department() {
+        return $this->belongsTo(Department::class);
+    }
+
+    // A user can have many orders
+    public function orders() {
+        return $this->hasMany(Order::class);
+    }
+
+
+
 }
