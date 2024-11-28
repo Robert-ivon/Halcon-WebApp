@@ -3,21 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Role;
+use App\Models\Department;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware('role:admin'); // Only allow admins
+    }
+
     // READ: Display a list of all users
     public function index()
     {
-        $users = User::all(); // Fetch all users
+        $users = User::paginate(10); // Paginate users
         return view('users.index', compact('users'));
     }
 
     // CREATE: Show the form for creating a new user
     public function create()
     {
-        return view('users.create');
+        $roles = Role::all();
+        $departments = Department::all();
+        return view('users.create', compact('roles', 'departments'));
     }
 
     // STORE: Store a newly created user in the database
@@ -27,17 +37,13 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role_id' => 'required|integer',
-            'department_id' => 'required|integer',
+            'role_id' => 'required|integer|exists:roles,id',
+            'department_id' => 'required|integer|exists:departments,id',
         ]);
 
-        User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role_id' => $validated['role_id'],
-            'department_id' => $validated['department_id'],
-        ]);
+        $validated['password'] = bcrypt($validated['password']);
+
+        User::create($validated);
 
         return redirect()->route('users.index')->with('success', 'User created successfully!');
     }
@@ -51,7 +57,9 @@ class UserController extends Controller
     // EDIT: Show the form for editing a specific user
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        $roles = Role::all();
+        $departments = Department::all();
+        return view('users.edit', compact('user', 'roles', 'departments'));
     }
 
     // UPDATE: Update a specific user in the database
@@ -59,10 +67,16 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
-            'role_id' => 'required|integer',
-            'department_id' => 'required|integer',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'role_id' => 'required|integer|exists:roles,id',
+            'department_id' => 'required|integer|exists:departments,id',
         ]);
+
+        if ($request->filled('password')) {
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']); // Don't update the password if it's not provided
+        }
 
         $user->update($validated);
 
@@ -74,5 +88,13 @@ class UserController extends Controller
     {
         $user->delete(); // Soft delete
         return redirect()->route('users.index')->with('success', 'User deleted successfully!');
+    }
+
+    // RESTORE: Restore a soft-deleted user
+    public function restore($id)
+    {
+        $user = User::withTrashed()->find($id);
+        $user->restore();
+        return redirect()->route('users.index')->with('success', 'User restored successfully!');
     }
 }

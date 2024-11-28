@@ -7,66 +7,83 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    // READ: Display a list of all orders
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    // Upload delivery photo for an order
+    public function uploadPhoto(Request $request, Order $order)
+    {
+        // Validate the uploaded photo
+        $request->validate([
+            'delivery_photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Store the photo
+        $photoPath = $request->file('delivery_photo')->store('delivery_photos', 'public');
+        
+        // Update the order with the uploaded photo
+        $order->delivery_photo = $photoPath;
+        $order->status = 'Delivered'; // Update order status to "Delivered"
+        $order->save();
+
+        return redirect()->route('route.dashboard')->with('success', 'Order delivered and photo uploaded successfully!');
+    }
+
     public function index()
     {
-        $orders = Order::latest()->get();
+        $orders = Order::all();  // Fetch all orders
         return view('orders.index', compact('orders'));
     }
 
-    // CREATE: Show the form for creating a new order
     public function create()
     {
         return view('orders.create');
     }
 
-    // STORE: Store a newly created order in the database
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'invoice_number' => 'required|string|unique:orders',
-            'delivery_address' => 'required|string|max:255',
-            'status' => 'required|in:Ordered,In process,In route,Delivered',
-            'notes' => 'nullable|string',
+        // Validate and store the order
+        $validatedData = $request->validate([
+            'invoice_number' => 'required|unique:orders',
+            'customer_name' => 'required|string',
+            'status' => 'required|string',
+            'delivery_address' => 'required|string',
         ]);
 
-        Order::create($validated);
-
-        return redirect()->route('orders.index')->with('success', 'Order created successfully!');
+        Order::create($validatedData);
+        
+        return redirect()->route('orders.index');
     }
 
-    // READ: Display a specific order by ID
-    public function show(Order $order)
+    public function show($id)
     {
+        $order = Order::findOrFail($id);
         return view('orders.show', compact('order'));
     }
 
-    // EDIT: Show the form for editing a specific order
-    public function edit(Order $order)
+    public function update(Request $request, $id)
     {
-        return view('orders.edit', compact('order'));
+        $order = Order::findOrFail($id);
+        $order->status = $request->input('status');
+        
+        if ($request->hasFile('photo')) {
+            $path = $request->file('photo')->store('order_photos', 'public');
+            $order->photo = $path;
+        }
+        
+        $order->save();
+        
+        return redirect()->route('orders.index');
     }
 
-    // UPDATE: Update a specific order in the database
-    public function update(Request $request, Order $order)
+    public function destroy($id)
     {
-        $validated = $request->validate([
-            'invoice_number' => 'required|string|unique:orders,invoice_number,'.$order->id,
-            'delivery_address' => 'required|string|max:255',
-            'status' => 'required|in:Ordered,In process,In route,Delivered',
-            'notes' => 'nullable|string',
-        ]);
-
-        $order->update($validated);
-
-        return redirect()->route('orders.index')->with('success', 'Order updated successfully!');
-    }
-
-    // DELETE: Soft delete a specific order (archive it)
-    public function destroy(Order $order)
-    {
-        $order->delete(); // Soft delete
-        return redirect()->route('orders.index')->with('success', 'Order deleted successfully!');
+        $order = Order::findOrFail($id);
+        $order->status = 'archived';
+        $order->save();
+        
+        return redirect()->route('orders.index');
     }
 }
-

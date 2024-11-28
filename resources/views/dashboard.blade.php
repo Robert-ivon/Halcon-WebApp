@@ -1,4 +1,10 @@
-<ul>
-    <li><a href="{{ route('users.index') }}">Users</a></li>
-    <li><a href="{{ route('orders.index') }}">Orders</a></li>
-</ul>
+@extends('layouts.app')
+
+@section('title', 'Dashboard - Halcon Web App')
+
+@section('content')
+    <div class="container">
+        <h1>Welcome to the Dashboard</h1>
+        <p>This is the dashboard page for authenticated users.</p>
+    </div>
+@endsection

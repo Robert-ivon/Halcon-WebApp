@@ -17,6 +17,11 @@ class CreateOrdersTable extends Migration
             $table->string('delivery_address'); // delivery address for the order
             $table->timestamps();
         });
+
+        Schema::table('orders', function (Blueprint $table) {
+            $table->string('delivery_photo')->nullable();
+        });
+        
     }
 
     public function down()

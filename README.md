@@ -48,3 +48,40 @@ The **Halcon Web App** is a Laravel-based web application designed for managing 
 
 **In Progress**:
 - Additional authentication and role-based access control (if applicable).
+
+Recent Updates
+1. Dashboard Views Completed
+The following role-based dashboards were implemented and completed today:
+
+Purchasing Dashboard:
+
+Displays orders that need to be purchased.
+Allows users to view and update orders that require material procurement.
+Warehouse Dashboard:
+
+Displays orders that are in process or in route.
+Allows users to update the status of orders and prepare them for delivery.
+Includes the option to mark orders as "In Process" and "In Route."
+Route Dashboard:
+
+Displays orders in transit.
+Allows users to upload delivery photos and mark orders as "Delivered."
+2. Soft Delete and Restore Functionality
+Soft delete functionality was added to the users table.
+Admin users can now delete and restore users without losing data, maintaining the integrity of the database.
+3. Photo Upload for Route Orders
+The Route Dashboard now includes the functionality for users to upload delivery photos when orders are marked as "Delivered."
+Photos are stored in the public directory, and the delivery_photo column in the orders table has been updated to store the file path.
+4. Middleware for Access Control
+Middleware has been implemented to restrict access to dashboards based on user roles:
+Admin users can access the Admin Dashboard.
+Sales users can access the Sales Dashboard.
+Purchasing users can access the Purchasing Dashboard.
+Warehouse users can access the Warehouse Dashboard.
+Route users can access the Route Dashboard.
+5. Alerts and Notifications
+Toastr notifications have been integrated into the application to display success and error messages dynamically.
+Bootstrap alerts are used for basic notifications, such as form validation messages and success/error notifications after actions.
+6. Database Adjustments
+Added the delivery_photo column in the orders table to store file paths of the uploaded photos.
+Created a migration to add the department_id column to the users table for department assignment.
