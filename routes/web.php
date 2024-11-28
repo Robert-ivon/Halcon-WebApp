@@ -15,66 +15,52 @@ use App\Http\Controllers\PurchasingController;
 use App\Http\Controllers\WarehouseController;
 use App\Http\Controllers\RouteController;
 
-Route::middleware('auth')->group(function () {
-    // Route for uploading a delivery photo for an order
-    Route::post('/orders/{order}/upload-photo', [OrderController::class, 'uploadPhoto'])->name('orders.uploadPhoto');
-
-    // Admin Dashboard Route
-    Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
-
-    // Sales Dashboard Route
-    Route::get('/sales/dashboard', [SalesController::class, 'index'])->name('sales.dashboard');
-    
-    // Purchasing Dashboard Route
-    Route::get('/purchasing/dashboard', [PurchasingController::class, 'index'])->name('purchasing.dashboard');
-    
-    // Warehouse Dashboard Route
-    Route::get('/warehouse/dashboard', [WarehouseController::class, 'index'])->name('warehouse.dashboard');
-    
-    // Route Dashboard Route
-    Route::get('/route/dashboard', [RouteController::class, 'index'])->name('route.dashboard');
-});
-
-Route::middleware('auth')->get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-
-Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-Route::post('register', [RegisterController::class, 'register']);
-
-Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('login', [LoginController::class, 'login']);
-Route::post('logout', [LoginController::class, 'logout'])->name('logout');
-
-// Home route
+// Public routes
 Route::get('/', function () {
     return view('main.index');
 })->name('home');
 
 Route::get('/order-status', [OrderController::class, 'checkStatus'])->name('order.status');
 
-Route::middleware(['auth', 'role:route'])->group(function () {
-   
-// Resource routes for Users
-Route::resource('users', UserController::class);
+Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('login', [LoginController::class, 'login']);
+Route::post('logout', [LoginController::class, 'logout'])->name('logout');
 
-// Resource routes for Orders
-Route::resource('orders', OrderController::class);
+Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('register', [RegisterController::class, 'register']);
 
-// Resource routes for Photos
-Route::resource('photos', PhotoController::class);
+// Routes for authenticated users
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// Resource routes for Roles
-Route::resource('roles', RoleController::class);
+    // Role-based dashboards
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    });
 
-// Resource routes for Departments
-Route::resource('departments', DepartmentController::class);
+    Route::middleware('role:sales')->group(function () {
+        Route::get('/sales/dashboard', [SalesController::class, 'index'])->name('sales.dashboard');
+    });
 
-Route::middleware('auth', 'role:purchasing')->get('/purchasing/dashboard', [PurchasingController::class, 'index'])->name('purchasing.dashboard');
-Route::middleware('auth', 'role:warehouse')->get('/warehouse/dashboard', [WarehouseController::class, 'index'])->name('warehouse.dashboard');
-Route::middleware('auth', 'role:route')->get('/route/dashboard', [RouteController::class, 'index'])->name('route.dashboard');
+    Route::middleware('role:purchasing')->group(function () {
+        Route::get('/purchasing/dashboard', [PurchasingController::class, 'index'])->name('purchasing.dashboard');
+    });
 
+    Route::middleware('role:warehouse')->group(function () {
+        Route::get('/warehouse/dashboard', [WarehouseController::class, 'index'])->name('warehouse.dashboard');
+    });
 
+    Route::middleware('role:route')->group(function () {
+        Route::get('/route/dashboard', [RouteController::class, 'index'])->name('route.dashboard');
+    });
+
+    // Resource routes
+    Route::resource('users', UserController::class)->middleware('role:admin');
+    Route::resource('orders', OrderController::class);
+    Route::resource('photos', PhotoController::class);
+    Route::resource('roles', RoleController::class)->middleware('role:admin');
+    Route::resource('departments', DepartmentController::class)->middleware('role:admin');
+
+    // Upload photo for Route personnel
+    Route::post('/orders/{order}/upload-photo', [OrderController::class, 'uploadPhoto'])->name('orders.uploadPhoto')->middleware('role:route');
 });
-
-
-

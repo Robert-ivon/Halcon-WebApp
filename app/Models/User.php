@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -9,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
 
     /**
@@ -21,6 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id',       // Make sure 'role_id' is mass assignable
+        'department_id', // Make sure 'department_id' is mass assignable
     ];
 
     /**
@@ -38,30 +40,35 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
-    
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
-    // A user belongs to a role
-    public function role() {
+    /**
+     * A user belongs to a role.
+     */
+    public function role()
+    {
         return $this->belongsTo(Role::class);
     }
 
-    // A user belongs to a department
-    public function department() {
+    /**
+     * A user belongs to a department.
+     */
+    public function department()
+    {
         return $this->belongsTo(Department::class);
     }
 
-    // A user can have many orders
-    public function orders() {
+    /**
+     * A user can have many orders.
+     */
+    public function orders()
+    {
         return $this->hasMany(Order::class);
     }
-
-
-
 }
+
+
+

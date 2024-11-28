@@ -37,6 +37,7 @@ class Kernel extends HttpKernel
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'role' => \App\Http\Middleware\RoleMiddleware::class, // Register your custom 'role' middleware
+        'role' => \App\Http\Middleware\CheckRole::class, // Keep only one 'role' middleware
     ];
+    
 }
